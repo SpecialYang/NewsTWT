@@ -1,6 +1,7 @@
 package com.special.newsdemo.Fragment;
 
 
+import android.content.Intent;
 import android.media.Image;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -16,6 +17,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.special.newsdemo.NewContentActivity;
 import com.special.newsdemo.R;
 import com.special.newsdemo.model.New;
 import com.special.newsdemo.model.NewsResponse;
@@ -43,10 +45,9 @@ public class NewsFragment extends Fragment {
     private RecyclerView recyclerView;
     private NewsAdpater newsAdpater;
     private List<New> newsList = new ArrayList<New>();
-    public NewsFragment() {
-        // Required empty public constructor
+    /*public NewsFragment() {
         refresh(1,1);
-    }
+    }*/
 
 
     @Override
@@ -79,7 +80,7 @@ public class NewsFragment extends Fragment {
                             newsAdpater.notifyDataSetChanged();
                             Toast.makeText(getActivity(),"获取成功",Toast.LENGTH_SHORT).show();
                         }else{
-                            Toast.makeText(getActivity(),"获取新闻失败，查看网络连接或者联系作者",Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getActivity(),"获取新闻失败，查看网络连接或者联系管理员",Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
@@ -92,7 +93,7 @@ public class NewsFragment extends Fragment {
                 getActivity().runOnUiThread(new Runnable(){
                     @Override
                     public void run() {
-                        Toast.makeText(getActivity(),"获取新闻失败，查看网络连接或者联系作者",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getActivity(),"获取新闻失败，查看网络连接或者联系管理员",Toast.LENGTH_SHORT).show();
                     }
                 });
             }
@@ -130,7 +131,10 @@ public class NewsFragment extends Fragment {
             holder.touchForNewsContent.setOnClickListener(new View.OnClickListener(){
                 @Override
                 public void onClick(View view) {
-
+                    New aNew = newsList.get(holder.getAdapterPosition());
+                    Intent intent = new Intent(getActivity(), NewContentActivity.class);
+                    intent.putExtra("index",aNew.index);
+                    startActivity(intent);
                 }
             });
             return holder;

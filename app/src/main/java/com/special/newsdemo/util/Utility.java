@@ -3,6 +3,7 @@ package com.special.newsdemo.util;
 import android.text.TextUtils;
 
 import com.google.gson.Gson;
+import com.special.newsdemo.model.NewContentResponse;
 import com.special.newsdemo.model.NewsResponse;
 
 import org.json.JSONArray;
@@ -24,5 +25,15 @@ public class Utility {
                 e.printStackTrace();
             }
             return null;
+    }
+
+    public static NewContentResponse handleNewsContentResponse(String response){
+        try{
+            JSONObject jsonObject = new JSONObject(response);
+            return new Gson().fromJson(jsonObject.toString(),NewContentResponse.class);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
     }
 }

@@ -49,8 +49,13 @@ public class MenuFragment extends Fragment {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        showNewsContent(0,1);
     }
-
+    public void showNewsContent(int type, int page){
+        NewsFragment newsFragment = (NewsFragment) getFragmentManager()
+                .findFragmentById(R.id.news_fragment);
+        newsFragment.refresh(type,page);
+    }
     class MenuAdapter extends RecyclerView.Adapter<MenuAdapter.ViewHolder>{
 
         private List<Menu> menuList;
@@ -75,9 +80,7 @@ public class MenuFragment extends Fragment {
                 @Override
                 public void onClick(View view) {
                     Menu menu = menuList.get(holder.getAdapterPosition());
-                    NewsFragment newsFragment = (NewsFragment) getFragmentManager()
-                            .findFragmentById(R.id.news_fragment);
-                    newsFragment.refresh(menu.getType(),1);
+                    showNewsContent(menu.getType(),1);
                 }
             });
             return holder;
