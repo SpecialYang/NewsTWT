@@ -1,6 +1,7 @@
 package com.special.newsdemo.Fragment;
 
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -24,7 +25,8 @@ public class MenuFragment extends Fragment {
     private static String[] menus = {"天大要闻","校园公告","社团风采","视点观察","我喜欢的"};
     private List<Menu> menuList = new ArrayList<Menu>();
     private RecyclerView menuRecyclerView;
-    MenuAdapter menuAdapter;
+    private MenuAdapter menuAdapter;
+    private LinearLayoutManager layoutManager;
     public MenuFragment() {
         for(int i = 0; i < menus.length; i++) {
             Menu menu = new Menu(menus[i], i + 1);
@@ -39,7 +41,7 @@ public class MenuFragment extends Fragment {
         View view =inflater.inflate(R.layout.fragment_menu,container,false);
         menuRecyclerView = (RecyclerView) view.findViewById(R.id.recycler_menu);
         menuAdapter = new MenuAdapter(menuList);
-        LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
+        layoutManager = new LinearLayoutManager(getActivity());
         layoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
         menuRecyclerView.setLayoutManager(layoutManager);
         menuRecyclerView.setAdapter(menuAdapter);
@@ -49,11 +51,13 @@ public class MenuFragment extends Fragment {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        showNewsContent(0,1);
+        showNewsContent(1,1);
     }
+
     public void showNewsContent(int type, int page){
         NewsFragment newsFragment = (NewsFragment) getFragmentManager()
                 .findFragmentById(R.id.news_fragment);
+        newsFragment.swipeRefreshLayout.setRefreshing(true);
         newsFragment.refresh(type,page);
     }
     class MenuAdapter extends RecyclerView.Adapter<MenuAdapter.ViewHolder>{
@@ -75,7 +79,7 @@ public class MenuFragment extends Fragment {
         @Override
         public MenuAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.menu_item,parent,false);
-            final ViewHolder holder = new MenuAdapter.ViewHolder(view);
+            final ViewHolder holder = new ViewHolder(view);
             view.setOnClickListener(new View.OnClickListener(){
                 @Override
                 public void onClick(View view) {

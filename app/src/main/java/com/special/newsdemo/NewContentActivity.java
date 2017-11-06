@@ -3,6 +3,11 @@ package com.special.newsdemo;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.View;
+import android.webkit.WebView;
+import android.widget.Button;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.special.newsdemo.model.NewContent;
@@ -19,10 +24,23 @@ import okhttp3.Response;
 public class NewContentActivity extends AppCompatActivity {
     //private int index;
     private static final String PERFIX_URL = "http://open.twtstudio.com/api/v1/news/";
+
+    private TextView textView;
+    private WebView  webView;
+    private Button button;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_new_content);
+        textView = (TextView) findViewById(R.id.new_subject);
+        webView = (WebView) findViewById(R.id.new_content);
+        button = (Button) findViewById(R.id.back_button);
+        button.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view) {
+                onBackPressed();
+            }
+        });
         Intent intent = getIntent();
         int index = intent.getIntExtra("index",0);
         if(index == 0)
@@ -58,6 +76,8 @@ public class NewContentActivity extends AppCompatActivity {
                             NewContent newContent = newContentResponse.data;
                             showNewContent(newContent);
                         }
+                        else
+                            showError();
                     }
                 });
             }
@@ -65,6 +85,7 @@ public class NewContentActivity extends AppCompatActivity {
     }
 
     public void showNewContent(NewContent newContent){
-
+        textView.setText(newContent.getSubject());
+        webView.loadData(newContent.getContent(),"text/html;charset='utf-8'",null);
     }
 }

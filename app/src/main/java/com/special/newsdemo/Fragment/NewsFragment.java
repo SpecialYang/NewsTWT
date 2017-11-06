@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.media.Image;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -39,16 +40,14 @@ import okhttp3.Response;
  */
 public class NewsFragment extends Fragment {
 
-    //private int type;
-    //private int page;
+    private int type = 1;
+    private int page = 1;
     private static final String PERFIX_Url = "http://open.twtstudio.com/api/v1/news/";
     private RecyclerView recyclerView;
     private NewsAdpater newsAdpater;
     private List<New> newsList = new ArrayList<New>();
-    /*public NewsFragment() {
-        refresh(1,1);
-    }*/
-
+    public SwipeRefreshLayout swipeRefreshLayout;
+    private boolean loading = false;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -56,14 +55,77 @@ public class NewsFragment extends Fragment {
         // Inflate the layout for this fragment
         View view= inflater.inflate(R.layout.fragment_news, container, false);
         recyclerView = (RecyclerView) view.findViewById(R.id.recycler_news);
-        LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
+        swipeRefreshLayout = (SwipeRefreshLayout) view.findViewById(R.id.refresh_news);
+        swipeRefreshLayout.setColorSchemeResources(R.color.colorProgress);
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener(){
+            @Override
+            public void onRefresh() {
+                page = 1;
+                refresh(type,page);
+            }
+        });
+        final LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
         recyclerView.setLayoutManager(layoutManager);
         newsAdpater = new NewsAdpater(newsList);
         recyclerView.setAdapter(newsAdpater);
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                int totalCount = layoutManager.getItemCount();
+                int visibleCount = layoutManager.getChildCount();
+                int firstVisibleItem = layoutManager.findFirstVisibleItemPosition();
+                if (!loading && totalCount - visibleCount <= firstVisibleItem) {
+                    page++;
+                    loadMore(page);
+                }
+            }
+        });
         return view;
     }
+    public void loadMore(int page){
+        loading = true;
+        String url = PERFIX_Url + type + "/page/" + page;
+        HttpUtility.sendOkHttpRequest(url,new Callback(){
 
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                String responseText = response.body().string();
+                final NewsResponse news = Utility.handleNewsResponse(responseText);
+                getActivity().runOnUiThread(new Runnable(){
+                    @Override
+                    public void run() {
+                        if(news.error_code == -1){
+                            if(news.data.size() > 0) {
+                                newsList.addAll(news.data);
+                                newsAdpater.notifyDataSetChanged();
+                                Toast.makeText(getActivity(),"获取更多成功",Toast.LENGTH_SHORT).show();
+                            }
+                            else
+                                Toast.makeText(getActivity(),"我是有底线的",Toast.LENGTH_SHORT).show();
+                        }else{
+                            Toast.makeText(getActivity(),"获取新闻失败，消息代码不是-1",Toast.LENGTH_SHORT).show();
+                        }
+                        loading = false;
+                    }
+                });
+            }
+            @Override
+            public void onFailure(Call call, IOException e) {
+                e.printStackTrace();
+                getActivity().runOnUiThread(new Runnable(){
+                    @Override
+                    public void run() {
+                        Toast.makeText(getActivity(),"获取新闻失败，服务器出错",Toast.LENGTH_SHORT).show();
+                    }
+                });
+                loading = false;
+            }
+        });
+    }
     public void refresh(int type, int page){
+        this.type = type;
+        this.page = page;
         String url = PERFIX_Url + type + "/page/" + page;
         HttpUtility.sendOkHttpRequest(url,new Callback(){
             @Override
@@ -75,13 +137,13 @@ public class NewsFragment extends Fragment {
                     public void run() {
                         if(news.error_code == -1){
                             newsList.clear();
-                            for(New item : news.data)
-                                newsList.add(item);
+                            newsList.addAll(news.data);
                             newsAdpater.notifyDataSetChanged();
                             Toast.makeText(getActivity(),"获取成功",Toast.LENGTH_SHORT).show();
                         }else{
-                            Toast.makeText(getActivity(),"获取新闻失败，查看网络连接或者联系管理员",Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getActivity(),"获取新闻失败，消息代码不是-1",Toast.LENGTH_SHORT).show();
                         }
+                        swipeRefreshLayout.setRefreshing(false);
                     }
                 });
 
@@ -93,9 +155,10 @@ public class NewsFragment extends Fragment {
                 getActivity().runOnUiThread(new Runnable(){
                     @Override
                     public void run() {
-                        Toast.makeText(getActivity(),"获取新闻失败，查看网络连接或者联系管理员",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getActivity(),"获取新闻失败，服务器出错",Toast.LENGTH_SHORT).show();
                     }
                 });
+                swipeRefreshLayout.setRefreshing(false);
             }
         });
     }
