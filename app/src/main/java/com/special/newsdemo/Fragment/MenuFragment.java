@@ -39,7 +39,7 @@ public class MenuFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view =inflater.inflate(R.layout.fragment_menu,container,false);
-        menuRecyclerView = (RecyclerView) view.findViewById(R.id.recycler_menu);
+        menuRecyclerView = view.findViewById(R.id.recycler_menu);
         menuAdapter = new MenuAdapter(menuList);
         layoutManager = new LinearLayoutManager(getActivity());
         layoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
