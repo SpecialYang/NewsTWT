@@ -36,4 +36,8 @@ public class Utility {
         }
         return null;
     }
+
+    public static String[] getTabMenus(){
+        return new String[]{"天大要闻","校园公告","社团风采","院系动态","视点观察"};
+    }
 }

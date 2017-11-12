@@ -10,20 +10,25 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.special.newsdemo.model.APi;
 import com.special.newsdemo.model.NewContent;
 import com.special.newsdemo.model.NewContentResponse;
+import com.special.newsdemo.model.NewsResponse;
 import com.special.newsdemo.util.HttpUtility;
 import com.special.newsdemo.util.Utility;
 
 import java.io.IOException;
 
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.Response;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class NewContentActivity extends AppCompatActivity {
     //private int index;
-    private static final String PERFIX_URL = "http://open.twtstudio.com/api/v1/news/";
+    private static final String PERFIX_URL = "http://open.twtstudio.com/api/v1/";
 
     private TextView textView;
     private WebView  webView;
@@ -51,33 +56,41 @@ public class NewContentActivity extends AppCompatActivity {
     public void showError(){
         Toast.makeText(this,"you encoutered a error!",Toast.LENGTH_SHORT).show();
     }
-    public void requestNewContent(int index){
-        String url = PERFIX_URL + index;
-        HttpUtility.sendOkHttpRequest(url,new Callback(){
-            @Override
-            public void onFailure(Call call, IOException e) {
-                e.printStackTrace();
-                runOnUiThread(new Runnable(){
-                    @Override
-                    public void run() {
-                       showError();
-                    }
-                });
-            }
 
+    public void requestNewContent(int index){
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(PERFIX_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+        APi api = retrofit.create(APi.class);
+        Call<NewContentResponse> call = api.getNewContent(index);
+        call.enqueue(new Callback<NewContentResponse>() {
             @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                final String responseString = response.body().string();
-                final NewContentResponse newContentResponse = Utility.handleNewsContentResponse(responseString);
+            public void onResponse(Call<NewContentResponse> call, Response<NewContentResponse> response) {
+                if (response.isSuccessful()) {
+                    final NewContentResponse newContentResponse = response.body();
+                    runOnUiThread(new Runnable(){
+                        @Override
+                        public void run() {
+                            if(newContentResponse.error_code == -1){
+                                NewContent newContent = newContentResponse.data;
+                                showNewContent(newContent);
+                            }
+                            else
+                                showError();
+                        }
+                    });
+                } else {
+                    showError();
+                }
+            }
+            @Override
+            public void onFailure(Call<NewContentResponse> call, Throwable t) {
+                t.printStackTrace();
                 runOnUiThread(new Runnable(){
                     @Override
                     public void run() {
-                        if(newContentResponse.error_code == -1){
-                            NewContent newContent = newContentResponse.data;
-                            showNewContent(newContent);
-                        }
-                        else
-                            showError();
+                        showError();
                     }
                 });
             }
